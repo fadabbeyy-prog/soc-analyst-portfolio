@@ -1,0 +1,7 @@
+AuthLogs
+| where EventType == "Login"
+| where Status == "Failure"
+| summarize FailedAttempts = count()
+    by Username, SourceIP
+| where FailedAttempts >= 3
+| sort by FailedAttempts desc
