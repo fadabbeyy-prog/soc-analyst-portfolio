@@ -26,6 +26,14 @@ A SOC analyst receives authentication logs and must determine whether repeated f
 
 The dataset contains fictional authentication events and uses documentation-only IP addresses.
 
+## Sample Authentication Log
+
+The sample authentication log used in this investigation is available here:
+
+**[View and download the sample authentication log – sample_auth_logs.csv](sample_auth_logs.csv)**
+
+The CSV file contains fictional login events, including successful and failed authentication attempts. It was used to test the detection logic and identify potentially suspicious login activity.
+
 ## Investigation Methodology
 
 1. Review the authentication events and their timestamps.
