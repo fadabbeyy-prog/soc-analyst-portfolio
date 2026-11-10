@@ -79,7 +79,7 @@ The intended detection logic is:
 - **Threshold:** Three or more failures
 - **Expected result:** Bob, with four failed attempts
 
-- ### Azure Log Analytics KQL Testing
+ ### Azure Log Analytics KQL Testing
 
 I successfully executed the failed-login detection query in Azure Log Analytics using a sample dataset created with KQL's `datatable()` function.
 
