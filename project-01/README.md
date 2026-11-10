@@ -94,7 +94,7 @@ The query successfully identified Bob's activity because it exceeded the configu
 
 **Evidence:**
 
-![Azure Log Analytics KQL results](kql-query-results.png)
+![Azure Log Analytics KQL results](kql-query-results.png.png)
 
 **Note:** This test used sample data created within the query. It demonstrates that the KQL detection logic works, but does not represent ingestion of live authentication logs or a production Microsoft Sentinel alert.
 
