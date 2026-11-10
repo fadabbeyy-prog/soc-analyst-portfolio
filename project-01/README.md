@@ -79,6 +79,25 @@ The intended detection logic is:
 - **Threshold:** Three or more failures
 - **Expected result:** Bob, with four failed attempts
 
+- ### Azure Log Analytics KQL Testing
+
+I successfully executed the failed-login detection query in Azure Log Analytics using a sample dataset created with KQL's `datatable()` function.
+
+**Test result:**
+
+- **Username:** Bob
+- **Source IP:** 198.51.100.24
+- **Failed login attempts:** 4
+- **Detection threshold:** 3 or more failed attempts
+
+The query successfully identified Bob's activity because it exceeded the configured threshold.
+
+**Evidence:**
+
+![Azure Log Analytics KQL results](kql-query-results.png)
+
+**Note:** This test used sample data created within the query. It demonstrates that the KQL detection logic works, but does not represent ingestion of live authentication logs or a production Microsoft Sentinel alert.
+
 ## Validation and Evidence
 
 The detection logic was tested in a Kaggle notebook using Python and pandas against the fictional authentication data.
