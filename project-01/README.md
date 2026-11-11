@@ -108,8 +108,6 @@ The test screenshot is available at [`failed-login-test.png`](failed-login-test.
 
 **Validation status:**
 
-**Validation status:**
-
 - CSV analysis: Completed and verified.
 - Python detection test: Completed.
 - KQL query: Successfully executed in Azure Log Analytics using sample data created with `datatable()`.
