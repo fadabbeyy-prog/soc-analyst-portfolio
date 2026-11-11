@@ -108,10 +108,12 @@ The test screenshot is available at [`failed-login-test.png`](failed-login-test.
 
 **Validation status:**
 
+**Validation status:**
+
 - CSV analysis: Completed and verified.
 - Python detection test: Completed.
-- KQL query: Saved in the repository; not yet executed in a SIEM.
-- Microsoft Sentinel ingestion and execution: Planned.
+- KQL query: Successfully executed in Azure Log Analytics using sample data created with `datatable()`.
+- Microsoft Sentinel ingestion and analytics rule testing: Outstanding.
 
 The Python test validates the intended detection logic but does not demonstrate execution in Microsoft Sentinel.
 
