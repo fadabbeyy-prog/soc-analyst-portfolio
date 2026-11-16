@@ -3,22 +3,27 @@
 
 ## About This Project
 
-This project demonstrates practical Security Operations Centre (SOC) skills by analysing authentication logs, identifying suspicious login patterns, and documenting investigation findings.
+This project demonstrates practical Security Operations Centre (SOC) skills through the investigation of authentication logs. It focuses on identifying repeated failed login attempts, investigating suspicious login patterns, developing detection logic, and documenting findings.
 
-## Objective
+The project progresses from analysing a fictional CSV dataset to ingesting authentication events into Microsoft Azure Log Analytics and testing Kusto Query Language (KQL) detection logic.
+
+## Objectives
 
 - Identify repeated failed login attempts.
 - Investigate successful logins following multiple failures.
 - Develop and validate detection logic.
-- Assess suspicious activity and recommend appropriate response actions.
+- Ingest sample authentication events into Azure Log Analytics.
+- Investigate suspicious activity and recommend appropriate response actions.
 
-## Tools
+## Tools and Technologies
 
-- **GitHub:** Project documentation and version control
-- **CSV:** Sample authentication event dataset
-- **Python and pandas:** Initial detection logic validation
-- **Kusto Query Language (KQL):** Detection query development
-- **Microsoft Sentinel:** Planned SIEM implementation and testing
+- **GitHub:** Project documentation and version control.
+- **CSV:** Fictional authentication event dataset.
+- **Python and pandas:** Initial detection logic validation.
+- **Kusto Query Language (KQL):** Detection query development and testing.
+- **Microsoft Azure Log Analytics:** Log ingestion, querying, and investigation.
+- **Azure Data Collection Rules (DCR):** Data ingestion and transformation configuration.
+- **Microsoft Sentinel:** Planned analytics rule implementation and testing.
 
 ## Investigation Scenario
 
@@ -30,18 +35,19 @@ The dataset contains fictional authentication events and uses documentation-only
 
 The sample authentication log used in this investigation is available here:
 
-**[View and download the sample authentication log – sample_auth_logs.csv](sample_auth_logs.csv)**
+[**View and download sample_auth_logs.csv**](sample_auth_logs.csv)
 
-The CSV file contains fictional login events, including successful and failed authentication attempts. It was used to test the detection logic and identify potentially suspicious login activity.
+The CSV file contains fictional login events, including successful and failed authentication attempts. It was used for the initial Python analysis and subsequent Azure Log Analytics ingestion.
 
 ## Investigation Methodology
 
-1. Review the authentication events and their timestamps.
+1. Review authentication events and their timestamps.
 2. Filter for failed login attempts.
 3. Group failures by username and source IP address.
-4. Flag groups with three or more failed attempts.
+4. Identify groups with three or more failed attempts.
 5. Review whether successful logins follow the failed attempts.
-6. Assess the evidence and recommend next steps.
+6. Validate the detection logic using Python and KQL.
+7. Assess the evidence and recommend appropriate response actions.
 
 ## Investigation Findings
 
@@ -67,53 +73,93 @@ This sequence may warrant investigation because it is consistent with a pattern 
 
 ## Detection Logic
 
-The KQL query is stored in [`failed_login_detection.kql`](failed_login_detection.kql).
+The original KQL detection query is stored in [`failed_login_detection.kql`](failed_login_detection.kql).
 
-The query filters failed login events, counts them by username and source IP, and returns groups with three or more failures.
+The detection logic:
 
-The intended detection logic is:
+- **Input:** Authentication events.
+- **Filter:** Failed login events.
+- **Grouping:** Username and source IP.
+- **Threshold:** Three or more failures.
+- **Expected result:** Bob, with four failed attempts.
 
-- **Input:** Authentication events
-- **Filter:** Failed login events
-- **Grouping:** Username and source IP
-- **Threshold:** Three or more failures
-- **Expected result:** Bob, with four failed attempts
+## Azure Log Analytics Implementation
 
- ### Azure Log Analytics KQL Testing
+### Workspace and Data Ingestion
 
-I successfully executed the failed-login detection query in Azure Log Analytics using a sample dataset created with KQL's `datatable()` function.
+I created an Azure Log Analytics workspace named `law-soc-analyst-lab01` and configured a custom table named `SOCAuthLogs_CL`.
 
-**Test result:**
+A Data Collection Endpoint (DCE) and Data Collection Rule (DCR) were configured to support ingestion of the sample authentication events.
 
-- **Username:** Bob
-- **Source IP:** 198.51.100.24
-- **Failed login attempts:** 4
-- **Detection threshold:** 3 or more failed attempts
+The CSV records were uploaded using the Azure Monitor Logs Ingestion API and the Python Azure Monitor ingestion SDK.
 
-The query successfully identified Bob's activity because it exceeded the configured threshold.
+The DCR transformation was configured to preserve the original event timestamp separately from the ingestion timestamp:
 
-**Evidence:**
+- **EventTime:** Original timestamp from the authentication CSV.
+- **TimeGenerated:** Timestamp assigned during ingestion.
 
-![Azure Log Analytics KQL results](kql-query-results.png.png)
+This distinction makes it possible to investigate when an authentication event actually occurred while retaining information about when the record entered Log Analytics.
 
-**Note:** This test used sample data created within the query. It demonstrates that the KQL detection logic works, but does not represent ingestion of live authentication logs or a production Microsoft Sentinel alert.
+### Timestamp Validation
+
+The ingested records were queried to confirm that the original event timestamps were preserved.
+
+The results showed the original October 2026 authentication event times in `EventTime`, while `TimeGenerated` reflected the later ingestion time.
+
+![Azure Log Analytics timestamp validation](azure-log-analytics-timestamp-validation.png)
+
+### Failed Login Detection in Azure Log Analytics
+
+The failed-login detection query was executed against the ingested `SOCAuthLogs_CL` table.
+
+Repeated uploads resulted in duplicate records in the table. To prevent these duplicates from inflating the failed-login count, the query first groups records by their original event timestamp and authentication details, retaining the earliest ingestion record for each event.
+
+The query then counts failed login events by username and source IP.
+
+**Detection query used in Azure Log Analytics:**
+
+```kusto
+SOCAuthLogs_CL
+| where Status == "Failure"
+| summarize arg_min(TimeGenerated, *) by EventTime, Username, Source_ip, Status
+| summarize FailedAttempts = count() by Username, Source_ip
+| where FailedAttempts >= 3
+| order by FailedAttempts desc
+```
+
+**Observed result:**
+
+| Username | Source IP | Failed Attempts |
+|---|---|---:|
+| bob | 198.51.100.24 | 4 |
+
+The query identified Bob's four failed login events after accounting for duplicate records.
+
+![Azure Log Analytics failed login detection](azure-log-analytics-failed-login-detection.png)
 
 ## Validation and Evidence
 
-The detection logic was tested in a Kaggle notebook using Python and pandas against the fictional authentication data.
-
-The test returned one matching username/IP pair: Bob, with four failed login attempts.
-
-The test screenshot is available at [`failed-login-test.png`](failed-login-test.png).
+The detection logic was validated using Python and pandas, and subsequently tested in Azure Log Analytics.
 
 **Validation status:**
 
-- CSV analysis: Completed and verified.
+- CSV analysis: Completed.
 - Python detection test: Completed.
-- KQL query: Successfully executed in Azure Log Analytics using sample data created with `datatable()`.
-- Microsoft Sentinel ingestion and analytics rule testing: Outstanding.
+- Azure Log Analytics workspace: Created.
+- Custom table `SOCAuthLogs_CL`: Created.
+- DCE and DCR configuration: Completed.
+- CSV ingestion through the Logs Ingestion API: Completed.
+- Original event timestamp validation: Completed.
+- KQL detection query against ingested records: Successfully executed.
+- Duplicate-record handling in the detection query: Implemented.
+- Microsoft Sentinel analytics rule and alert testing: Outstanding.
 
-The Python test validates the intended detection logic but does not demonstrate execution in Microsoft Sentinel.
+### Evidence Screenshots
+
+1. [Python failed-login detection test](failed-login-test.png)
+2. [Azure Log Analytics failed-login detection](azure-log-analytics-failed-login-detection.png)
+3. [Azure Log Analytics timestamp validation](azure-log-analytics-timestamp-validation.png)
+4. [Original KQL query results](kql-query-results.png)
 
 ## Recommended Response
 
@@ -125,15 +171,16 @@ If this pattern appeared in a real environment, a SOC analyst should:
 4. Check for additional suspicious activity involving the account.
 5. Escalate according to the organisation's incident response procedures if further evidence supports compromise.
 
-Response actions should be proportionate to the evidence and the organisation's procedures.
+Response actions should be proportionate to the available evidence and the organisation's procedures.
 
 ## Limitations
 
 - The dataset is small and fictional.
 - The events do not include device information, MFA outcomes, or identity-provider risk signals.
-- The threshold is a basic detection rule and may generate false positives.
+- The detection threshold is basic and may generate false positives.
+- Duplicate records remain in the Log Analytics table from repeated uploads; the detection query accounts for identical events using their original timestamps and event details.
 - The analysis does not prove malicious activity or account compromise.
-- Microsoft Sentinel testing remains outstanding.
+- Microsoft Sentinel analytics rule and alert testing have not yet been completed.
 
 ## Disclaimer
 
@@ -141,7 +188,7 @@ This is an educational portfolio project using fictional authentication events a
 
 ## Next Steps
 
-- Ingest the sample authentication events into a suitable SIEM lab.
-- Execute and validate the detection query in Microsoft Sentinel.
-- Capture the SIEM query results and document any differences.
-- Refine the detection logic and record its limitations.
+- Implement and test an analytics rule in Microsoft Sentinel.
+- Configure an alert based on the failed-login detection logic.
+- Capture evidence of the Sentinel detection and document the results.
+- Refine the detection logic and evaluate its limitations.
