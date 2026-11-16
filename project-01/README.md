@@ -108,15 +108,16 @@ The results showed the original October 2026 authentication event times in `Even
 
 ![Azure Log Analytics timestamp validation](azure-log-analytics-timestamp-validation.png)
 
+
 ### Failed Login Detection in Azure Log Analytics
 
-The failed-login detection query was executed against the ingested `SOCAuthLogs_CL` table.
+After uploading the sample authentication logs into Azure Log Analytics, I ran a KQL query to identify accounts with repeated failed login attempts.
 
-Repeated uploads resulted in duplicate records in the table. To prevent these duplicates from inflating the failed-login count, the query first groups records by their original event timestamp and authentication details, retaining the earliest ingestion record for each event.
+The query checks failed logins, groups them by username and source IP address, and flags accounts with three or more failed attempts.
 
-The query then counts failed login events by username and source IP.
+During testing, some records were uploaded more than once. I used KQL to exclude duplicate events so they would not affect the detection results.
 
-**Detection query used in Azure Log Analytics:**
+**Detection Query:**
 
 ```kusto
 SOCAuthLogs_CL
@@ -127,15 +128,18 @@ SOCAuthLogs_CL
 | order by FailedAttempts desc
 ```
 
-**Observed result:**
+**Detection Result:**
 
 | Username | Source IP | Failed Attempts |
 |---|---|---:|
 | bob | 198.51.100.24 | 4 |
 
-The query identified Bob's four failed login events after accounting for duplicate records.
+The query successfully identified Bob because he had four unique failed login attempts, exceeding the detection threshold of three.
 
-![Azure Log Analytics failed login detection](azure-log-analytics-failed-login-detection.png)
+**Screenshot of Azure Log Analytics results:**
+
+![Azure Log Analytics Failed Login Detection](./azure-log-analytics-failed-login-detection.png)
+
 
 ## Validation and Evidence
 
