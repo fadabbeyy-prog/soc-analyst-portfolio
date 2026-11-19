@@ -23,7 +23,7 @@ The project progresses from analysing a fictional CSV dataset to ingesting authe
 - **Kusto Query Language (KQL):** Detection query development and testing.
 - **Microsoft Azure Log Analytics:** Log ingestion, querying, and investigation.
 - **Azure Data Collection Rules (DCR):** Data ingestion and transformation configuration.
-- **Microsoft Sentinel:** Planned analytics rule implementation and testing.
+- **Microsoft Sentinel:** Investigated onboarding; analytics rule testing remains outstanding due to regional availability.
 
 ## Investigation Scenario
 
@@ -35,7 +35,7 @@ The dataset contains fictional authentication events and uses documentation-only
 
 The sample authentication log used in this investigation is available here:
 
-[**View and download sample_auth_logs.csv**](sample_auth_logs.csv)
+[**View and download sample_auth_logs.csv**](./sample_auth_logs.csv)
 
 The CSV file contains fictional login events, including successful and failed authentication attempts. It was used for the initial Python analysis and subsequent Azure Log Analytics ingestion.
 
@@ -73,7 +73,7 @@ This sequence may warrant investigation because it is consistent with a pattern 
 
 ## Detection Logic
 
-The original KQL detection query is stored in [`failed_login_detection.kql`](failed_login_detection.kql).
+The original KQL detection query is stored in [`failed_login_detection.kql`](./failed_login_detection.kql).
 
 The detection logic:
 
@@ -106,8 +106,7 @@ The ingested records were queried to confirm that the original event timestamps 
 
 The results showed the original October 2026 authentication event times in `EventTime`, while `TimeGenerated` reflected the later ingestion time.
 
-![Azure Log Analytics timestamp validation](azure-log-analytics-timestamp-validation.png)
-
+![Azure Log Analytics timestamp validation](./azure-log-analytics-timestamp-validation.png)
 
 ### Failed Login Detection in Azure Log Analytics
 
@@ -140,7 +139,6 @@ The query successfully identified Bob because he had four unique failed login at
 
 ![Azure Log Analytics Failed Login Detection](./azure-log-analytics-failed-login-detection.png)
 
-
 ## Validation and Evidence
 
 The detection logic was validated using Python and pandas, and subsequently tested in Azure Log Analytics.
@@ -156,14 +154,14 @@ The detection logic was validated using Python and pandas, and subsequently test
 - Original event timestamp validation: Completed.
 - KQL detection query against ingested records: Successfully executed.
 - Duplicate-record handling in the detection query: Implemented.
-- Microsoft Sentinel analytics rule and alert testing: Outstanding.
+- Microsoft Sentinel onboarding: Not completed due to regional availability; analytics rule and alert testing remain outstanding.
 
 ### Evidence Screenshots
 
-1. [Python failed-login detection test](failed-login-test.png)
-2. [Azure Log Analytics failed-login detection](azure-log-analytics-failed-login-detection.png)
-3. [Azure Log Analytics timestamp validation](azure-log-analytics-timestamp-validation.png)
-4. [Original KQL query results](kql-query-results.png)
+1. [Python failed-login detection test](./failed-login-test.png)
+2. [Azure Log Analytics failed-login detection](./azure-log-analytics-failed-login-detection.png)
+3. [Azure Log Analytics timestamp validation](./azure-log-analytics-timestamp-validation.png)
+4. [Original KQL query results](./kql-query-results.png)
 
 ## Recommended Response
 
@@ -184,7 +182,7 @@ Response actions should be proportionate to the available evidence and the organ
 - The detection threshold is basic and may generate false positives.
 - Duplicate records remain in the Log Analytics table from repeated uploads; the detection query accounts for identical events using their original timestamps and event details.
 - The analysis does not prove malicious activity or account compromise.
-- Microsoft Sentinel analytics rule and alert testing have not yet been completed.
+- Microsoft Sentinel analytics rule and alert testing have not yet been completed due to regional availability limitations.
 
 ## Disclaimer
 
@@ -192,7 +190,7 @@ This is an educational portfolio project using fictional authentication events a
 
 ## Next Steps
 
-- Implement and test an analytics rule in Microsoft Sentinel.
+- Implement and test an analytics rule in Microsoft Sentinel when regional availability permits.
 - Configure an alert based on the failed-login detection logic.
 - Capture evidence of the Sentinel detection and document the results.
 - Refine the detection logic and evaluate its limitations.
